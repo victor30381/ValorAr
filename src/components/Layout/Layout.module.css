@@ -1,0 +1,27 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+}
+
+.mainContent {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    margin-top: 70px;
+    /* Navbar height */
+    /* Full width */
+    width: 100%;
+}
+
+/* Media query for mobile responsiveness if needed, but keeping it simple for now as requested */
+@media (max-width: 768px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .mainContent {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
