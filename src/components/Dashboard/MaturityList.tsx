@@ -5,9 +5,37 @@ import { SmileyXEyes } from "phosphor-react";
 const MaturityList = () => {
     const { investments } = useInvestments();
 
-    // Filter logic would go here, for now we just check if there are any investments
-    // In a real app, we'd filter by date > today && date < today + 30 days
-    const upcoming = investments.filter(inv => inv.maturityDate).slice(0, 5);
+    // Helper to parse DD/MM/YYYY to Date object
+    const parseDate = (dateStr?: string) => {
+        if (!dateStr) return null;
+        const [d, m, y] = dateStr.split('/').map(Number);
+        return new Date(y, m - 1, d);
+    };
+
+    // Filter, sort and slice investments
+    const upcoming = investments
+        .filter(inv => inv.maturityDate)
+        .sort((a, b) => {
+            const dateA = parseDate(a.maturityDate);
+            const dateB = parseDate(b.maturityDate);
+            if (!dateA || !dateB) return 0;
+            return dateA.getTime() - dateB.getTime();
+        })
+        .slice(0, 5);
+
+    const getStatusDotClass = (maturityDateStr?: string) => {
+        const matDate = parseDate(maturityDateStr);
+        if (!matDate) return '';
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffMs = matDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 10) return styles.dotDanger;
+        if (diffDays < 30) return styles.dotWarning;
+        return styles.dotSafe;
+    };
 
     if (upcoming.length === 0) {
         return (
@@ -26,29 +54,26 @@ const MaturityList = () => {
     return (
         <div className={styles.card}>
             <div className={styles.cardHeader}>
-                <h3>Próximos Vencimientos (30 días)</h3>
-                <button className={styles.actionLink}>[Ver Calendario Completo &gt;]</button>
+                <h3>Próximos Vencimientos</h3>
+                <button className={styles.actionLink}>[Ver Calendario &gt;]</button>
             </div>
 
             <ul className={styles.maturityList}>
-                {upcoming.map((item, index) => (
-                    <li key={index} className={styles.maturityItem}>
-                        {/* Dot */}
-                        <div className={`${styles.maturityDot}`} />
+                {upcoming.map((item) => (
+                    <li key={item.id} className={styles.maturityItem}>
+                        {/* Status Color Dot */}
+                        <div className={`${styles.maturityDot} ${getStatusDotClass(item.maturityDate)}`} />
 
                         <div className={styles.maturityContent}>
                             <div className={styles.maturityRow}>
-                                <div>
-                                    <span className={styles.maturityDate} style={{ color: 'var(--text-primary)' }}>
-                                        {item.maturityDate}
-                                    </span>
-                                    <span className="text-secondary" style={{ margin: '0 0.5rem' }}>|</span>
-                                    <span className={styles.maturityAmount}>
-                                        $ {Number(item.amount).toLocaleString('es-AR')}
-                                    </span>
-                                </div>
+                                <span className={styles.maturityDate}>
+                                    {item.maturityDate}
+                                </span>
+                                <span className={styles.maturityAmount}>
+                                    $ {Number(item.amount).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
                             </div>
-                            <span className={styles.maturityDesc}>{item.ticker || item.type}</span>
+                            <span className={styles.maturityDesc}>{item.ticker || item.type} • {item.broker}</span>
                         </div>
                     </li>
                 ))}

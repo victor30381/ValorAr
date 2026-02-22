@@ -7,7 +7,7 @@ import styles from "./Dashboard.module.css";
 import { useInvestments } from "../../context/InvestmentContext";
 
 const DashboardView = () => {
-    const { investments, totalCapital } = useInvestments();
+    const { investments, totalCapital, netCapital } = useInvestments();
 
     // Calculate total estimated gain
     const totalGain = investments.reduce((sum, inv) => {
@@ -33,29 +33,39 @@ const DashboardView = () => {
         <div className={styles.dashboardContainer}>
             <div className={styles.header}>
                 <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.25rem' }}>Dashboard</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Bienvenido a tu portafolio</p>
+                    <h2>Dashboard</h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Tu portafolio de inversiones</p>
                 </div>
             </div>
 
             {/* KPI Cards */}
             <div className={styles.kpiGrid}>
                 <MetricCard
-                    title="Capital Total"
-                    value={`$ ${totalCapital.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
-                    subtitle="Incluye intereses devengados a hoy"
-                    icon={<Wallet size={32} />}
+                    title="Capital Invertido"
+                    value={`$ ${netCapital.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+                    subtitle="Inversiones - Retiros"
+                    icon={<Wallet size={24} weight="duotone" />}
+                    variant="Primary"
                 />
                 <MetricCard
-                    title="Ganancia Estimada (A Venc.)"
+                    title="Ganancia Est."
                     value={`$ ${totalGain.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
                     color="success"
-                    icon={<TrendUp size={32} />}
+                    icon={<TrendUp size={24} weight="duotone" />}
+                    variant="Blue"
                 />
                 <MetricCard
-                    title="Tasa Promedio Ponderada"
+                    title="Capital al Vencimiento"
+                    value={`$ ${(netCapital + totalGain).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+                    subtitle="Invertido + Ganancia"
+                    icon={<Wallet size={24} weight="duotone" />}
+                    variant="Purple"
+                />
+                <MetricCard
+                    title="Tasa Promedio"
                     value={`${avgTae.toFixed(1)}% TAE`}
-                    icon={<Clock size={32} />}
+                    icon={<Clock size={24} weight="duotone" />}
+                    variant="Orange"
                 />
             </div>
 

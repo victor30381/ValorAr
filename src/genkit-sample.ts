@@ -45,6 +45,6 @@ const helloFlow = ai.defineFlow('helloFlow', async (name) => {
 });
 
 // Execute the flow
-helloFlow('Victor').catch(err => {
+helloFlow('Victor').catch(_err => {
     console.error('Flow failed');
 });

@@ -1,0 +1,222 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profileCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid var(--primary);
+    flex-shrink: 0;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.userInfo h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.2rem;
+}
+
+.userInfo p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.menuContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.menuItem {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+}
+
+.menuItem:active {
+    transform: scale(0.98);
+    background: var(--bg-main);
+    border-color: var(--primary);
+}
+
+@media (hover: hover) {
+    .menuItem:hover {
+        border-color: var(--primary);
+        background: rgba(16, 185, 129, 0.04);
+    }
+}
+
+.menuIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.menuItem:active .menuIcon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+}
+
+.menuText {
+    display: flex;
+    flex-direction: column;
+}
+
+.menuLabel {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.menuSub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.logoutBtn {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+    font-family: inherit;
+    font-size: 1rem;
+    min-height: 52px;
+}
+
+.logoutBtn:active {
+    background: rgba(239, 68, 68, 0.15);
+    transform: scale(0.98);
+}
+
+.footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Expandable Menu Styles */
+.menuItemWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.menuItem.menuItemExpanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.04);
+}
+
+.expandedContent {
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    margin-top: -1px;
+    /* Overlap the border to form a cohesive card */
+}
+
+.themeOptions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 1rem 1rem 1rem;
+    gap: 0.5rem;
+}
+
+.themeOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    background: var(--bg-main);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.themeOption:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.themeOptionActive {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.themeOptionActive:hover {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--primary);
+}

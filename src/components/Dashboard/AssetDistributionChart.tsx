@@ -1,7 +1,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useInvestments } from "../../context/InvestmentContext";
+import styles from "./AssetDistributionChart.module.css";
 
-const COLORS = ['#FFBB28', '#00C49F', '#0088FE', '#FF8042', '#8884d8'];
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const AssetDistributionChart = () => {
     const { investments } = useInvestments();
@@ -17,40 +18,64 @@ const AssetDistributionChart = () => {
         return acc;
     }, []);
 
-    // Calculate percentages for tooltip or label if needed, but Recharts handles value mapping
-    // We can also just pass the raw values
-
     if (data.length === 0) {
         return (
-            <div style={{ height: '300px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <h4>Distribución de Activos</h4>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Sin datos disponibles</p>
+            <div className={styles.emptyState}>
+                <h4 className={styles.title}>Distribución de Activos</h4>
+                <p>Sin datos disponibles</p>
             </div>
         );
     }
 
     return (
-        <div style={{ height: '300px', width: '100%', position: 'relative' }}>
-            <h4>Distribución de Activos</h4>
-            <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie
-                        data={data}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        paddingAngle={5}
-                        dataKey="value"
-                    >
-                        {data.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number | undefined) => `$ ${(value || 0).toLocaleString('es-AR')}`} />
-                </PieChart>
-            </ResponsiveContainer>
+        <div className={styles.container}>
+            <h4 className={styles.title}>Distribución de Activos</h4>
+            <div className={styles.chartWrapper}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                            data={data}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={70}
+                            fill="#8884d8"
+                            paddingAngle={5}
+                            dataKey="value"
+                            stroke="none"
+                        >
+                            {data.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip
+                            formatter={(value: number | undefined) => `$ ${(value || 0).toLocaleString('es-AR')}`}
+                            contentStyle={{
+                                borderRadius: '12px',
+                                border: '1px solid var(--border)',
+                                fontSize: '0.85rem',
+                                padding: '0.5rem 0.75rem',
+                                backgroundColor: 'var(--bg-card)',
+                                boxShadow: 'var(--shadow-lg)',
+                                color: 'var(--text-primary)'
+                            }}
+                            itemStyle={{ color: 'var(--text-primary)' }}
+                        />
+                    </PieChart>
+                </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className={styles.legend}>
+                {data.map((item, index) => (
+                    <div key={item.name} className={styles.legendItem}>
+                        <div
+                            className={styles.legendDot}
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        {item.name}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

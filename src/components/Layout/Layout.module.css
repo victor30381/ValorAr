@@ -1,27 +1,35 @@
 .layout {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
-    background-color: var(--bg-main);
+    min-height: 100dvh;
+    background: var(--bg-gradient);
 }
 
 .mainContent {
     flex: 1;
-    padding: 2rem;
+    padding: 1rem;
     overflow-y: auto;
-    margin-top: 70px;
-    /* Navbar height */
-    /* Full width */
+    -webkit-overflow-scrolling: touch;
+    margin-top: var(--navbar-height);
     width: 100%;
+    /* Space for bottom nav on mobile */
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 1rem);
+    position: relative;
+    z-index: 1;
 }
 
-/* Media query for mobile responsiveness if needed, but keeping it simple for now as requested */
-@media (max-width: 768px) {
-    .layout {
-        flex-direction: column;
-    }
+[data-theme="dark"] .layout {
+    background: var(--dark-bg-gradient);
+}
 
+@media (min-width: 769px) {
     .mainContent {
-        margin-left: 0;
-        padding: 1rem;
+        padding: 2rem;
+        margin-top: var(--navbar-height);
+        padding-bottom: 2rem;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }

@@ -100,10 +100,21 @@ function calculateLocally(
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const yyyy = date.getFullYear();
         maturityDate = `${dd}/${mm}/${yyyy}`;
+    } else if (instrumentType === 'Cauciones Bursátiles') {
+        // Extract days from ticker like CAUC-7D
+        const daysMatch = ticker.match(/(\d+)D/);
+        const days = daysMatch ? parseInt(daysMatch[1], 10) : 1;
+        const [y, m, d] = purchaseDate.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        date.setDate(date.getDate() + days);
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        maturityDate = `${dd}/${mm}/${yyyy}`;
     }
 
     // 2. Calculate nominals
-    const nominals = (amount / price) * 100;
+    let nominals = (amount / price) * 100;
 
     // 3. Calculate maturity value
     let maturityValue = amount; // Default: no gain
@@ -126,6 +137,11 @@ function calculateLocally(
         const estimatedTNA = marketTna ? marketTna / 100 : 0.37;
         const days = ticker === 'PF-UVA' ? 90 : 30;
         maturityValue = amount * (1 + estimatedTNA * days / 365);
+    } else if (instrumentType === 'Cauciones Bursátiles') {
+        const tnaDecimal = (marketTna || 37) / 100;
+        const daysMatch = ticker.match(/(\d+)D/);
+        const days = daysMatch ? parseInt(daysMatch[1], 10) : 1;
+        maturityValue = amount * (1 + tnaDecimal * days / 365);
     }
 
     // 4. Calculate financial metrics
@@ -208,10 +224,10 @@ DATOS DE LA INVERSIÓN:
 INSTRUCCIONES DE CÁLCULO:
 1. **Fecha de Vencimiento**: Determina la fecha de vencimiento basándote en el ticker.
    - Convención de tickers argentinos: S30N6 = vence 30/Nov/2026, S31G6 = 31/Ago/2026, S16M6 = 16/Mar/2026, etc.
-   - Para Plazos Fijos: asume 30 días desde la fecha de compra.
-   - Para Acciones/CEDEARs/FCI/Cripto: no tienen vencimiento, indica "Sin vencimiento".
+   - Para Plazos Fijos y Cauciones: asume los días indicados en el ticker (Cauc-7D = 7 días, PF = 30 días).
 
-2. **Nominales**: Cantidad de nominales = (Monto Invertido / Precio) * 100
+2. **Nominals**: 
+   - Cantidad de nominales = (Monto Invertido / Precio) * 100.
 
 3. **Valor al Vencimiento (Maturity Value)**:
    - Para Lecaps y Bonos Discount: los nominales se reciben al 100% al vencimiento, entonces Maturity Value = Nominales.
@@ -277,3 +293,50 @@ RESPONDE EXCLUSIVAMENTE en formato JSON (sin markdown, sin backticks, solo JSON 
     console.log("Using local financial calculator.");
     return calculateLocally(instrumentType, ticker, price, amount, purchaseDate, marketTna);
 };
+
+/**
+ * Fetches real-time market rates using Gemini AI as a source of truth for the Argentine market.
+ */
+export async function getLiveMarketRates(instrumentType: string, currentOptions: any[]): Promise<any[]> {
+    const apiKey = import.meta.env.VITE_GOOGLE_GENAI_API_KEY;
+    if (!apiKey) return currentOptions;
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use 1.5 flash for speed/cost
+
+        const prompt = `
+            Sos un experto en el mercado financiero argentino. Necesito las TASAS NOMINALES ANUALES (TNA) actuales (hoy ${new Date().toLocaleDateString()}) para el siguiente tipo de activo: "${instrumentType}".
+            
+            Instrumentos actuales en la base: ${JSON.stringify(currentOptions.map(o => o.label))}
+            
+            INSTRUCCIÓN:
+            Devolvé un JSON con el siguiente formato, actualizando los valores de TNA si es necesario basado en datos de mercado de hoy (Cocos Capital, BYMA, BCRA). 
+            Mantené los tickers originales. Si no tenés el dato exacto, ajustalo según la tendencia real de tasas en Argentina hoy.
+            
+            Formato:
+            [
+                {"ticker": "...", "tna": 36.5}, 
+                ...
+            ]
+            
+            IMPORTANTE: Solo devolvé el JSON, nada de texto extra.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+
+        if (jsonMatch) {
+            const updatedRates = JSON.parse(jsonMatch[0]);
+            return currentOptions.map(opt => {
+                const updated = updatedRates.find((r: any) => r.ticker === opt.ticker);
+                return updated ? { ...opt, tna: updated.tna } : opt;
+            });
+        }
+    } catch (error) {
+        console.error("Error fetching live rates via AI:", error);
+    }
+
+    return currentOptions;
+}

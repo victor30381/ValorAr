@@ -2,38 +2,58 @@
 
 :root {
   --primary: #10B981;
-  /* Modern Emerald Green */
+  --primary-glow: rgba(16, 185, 129, 0.4);
   --primary-hover: #059669;
   --secondary: #64748B;
+
+  /* Vibrant Accents */
   --accent-blue: #3B82F6;
+  --accent-blue-glow: rgba(59, 130, 246, 0.4);
   --accent-purple: #8B5CF6;
+  --accent-purple-glow: rgba(139, 92, 246, 0.4);
+  --accent-orange: #F59E0B;
+  --accent-orange-glow: rgba(245, 158, 11, 0.4);
+  --accent-pink: #EC4899;
+  --accent-pink-glow: rgba(236, 72, 153, 0.4);
 
-  --bg-main: #F3F4F6;
-  /* Light gray background */
+  /* Light Mode - More Colorful & Contrasty */
+  --bg-main: #F8FAFC;
   --bg-card: #FFFFFF;
+  --bg-gradient: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
 
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
 
-  --border: #E5E7EB;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --border: #E2E8F0;
+  --border-hover: rgba(16, 185, 129, 0.3);
 
-  --radius: 16px;
-  /* More rounded */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.15);
+
+  --radius: 20px;
+  --radius-sm: 12px;
   --font-sans: 'Outfit', sans-serif;
 
-  /* Dark Mode - adjusted for better contrast */
-  --dark-bg-main: #0F172A;
-  --dark-bg-card: #1E293B;
-  --dark-text-primary: #F9FAFB;
+  /* Dark Mode Overrides */
+  --dark-bg-main: #0B0F1A;
+  --dark-bg-card: #161E2E;
+  --dark-bg-gradient: radial-gradient(circle at top right, #1E293B, #0B0F1A);
+  --dark-text-primary: #F1F5F9;
   --dark-text-secondary: #94A3B8;
-  --dark-border: #334155;
+  --dark-border: #1E293B;
+  --dark-border-hover: rgba(16, 185, 129, 0.4);
+
+  /* Mobile specific */
+  --navbar-height: 60px;
+  --bottom-nav-height: 64px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg-main: var(--dark-bg-main);
     --bg-card: var(--dark-bg-card);
     --text-primary: var(--dark-text-primary);
@@ -42,10 +62,25 @@
   }
 }
 
+:root[data-theme="dark"] {
+  --bg-main: var(--dark-bg-main);
+  --bg-card: var(--dark-bg-card);
+  --text-primary: var(--dark-text-primary);
+  --text-secondary: var(--dark-text-secondary);
+  --border: var(--dark-border);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html {
+  /* Prevent iOS text size adjustment */
+  -webkit-text-size-adjust: 100%;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 body {
@@ -54,43 +89,124 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-}
-
-.layout {
-  display: flex;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: contain;
+  /* Allow safe-area for notch devices */
+  padding-top: var(--safe-area-top);
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
-.sidebar {
-  width: 250px;
-  background-color: var(--bg-card);
-  border-right: 1px solid var(--border);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
+/* Remove default tap highlight on mobile */
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
+/* Minimum touch target sizes (44x44px per WCAG) */
+button,
+a,
+select,
+[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
 }
 
+/* Better input styling for mobile */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+  /* Prevents iOS zoom on input focus */
+  font-family: var(--font-sans);
+  border-radius: var(--radius-sm);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Global card styles */
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent);
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.card:hover::before {
+  left: 100%;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .card {
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+}
+
+/* Utility buttons */
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
 }
 
 .btn-primary {
@@ -102,8 +218,10 @@ body {
   background-color: var(--primary-hover);
 }
 
+/* Tables - better for mobile */
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -113,7 +231,7 @@ table {
 
 th,
 td {
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
@@ -121,14 +239,34 @@ td {
 th {
   font-weight: 600;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
+/* Grid dashboard - mobile first */
 .grid-dashboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .grid-dashboard {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Active touch states for better feedback */
+@media (hover: none) {
+
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
 }

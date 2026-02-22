@@ -18,7 +18,6 @@ const Login = () => {
         try {
             await signInWithGoogle();
         } catch (error) {
-            // Handle error (could add a toast notification here)
             console.error("Failed to login", error);
         }
     };
@@ -27,15 +26,23 @@ const Login = () => {
         <div className={styles.container}>
             <div className={styles.card}>
                 <div className={styles.header}>
-                    <img src="/vite.svg" alt="ValorAr Logo" style={{ width: 48, height: 48, marginBottom: '1rem' }} />
+                    <div className={styles.logoContainer}>
+                        <img src="/valorar-logo.png" alt="ValorAr Logo" className={styles.logo} />
+                    </div>
                     <h1>Bienvenido a ValorAr</h1>
                     <p>Tu control de inversiones a un clic de distancia</p>
                 </div>
 
-                <button onClick={handleGoogleLogin} className={styles.googleBtn}>
-                    <GoogleLogo size={24} weight="bold" />
-                    <span>Iniciar sesión con Google</span>
-                </button>
+                <div className={styles.content}>
+                    <button onClick={handleGoogleLogin} className={styles.googleBtn}>
+                        <GoogleLogo size={24} weight="bold" />
+                        <span>Iniciar sesión con Google</span>
+                    </button>
+                </div>
+
+                <div className={styles.footer}>
+                    <p>© 2026 ValorAr Inversiones</p>
+                </div>
             </div>
         </div>
     );
