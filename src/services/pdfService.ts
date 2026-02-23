@@ -88,7 +88,7 @@ export async function generatePortfolioPDF(
     doc.rect(0, 0, pageW, 28, 'F');
 
     // Logo
-    const logoBase64 = await loadLogoAsBase64('/logo.png');
+    const logoBase64 = await loadLogoAsBase64(`${import.meta.env.BASE_URL}logo.png`);
     if (logoBase64) {
         doc.addImage(logoBase64, 'PNG', margin + 3, 7, 14, 14);
     } else {

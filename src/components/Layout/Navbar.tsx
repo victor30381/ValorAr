@@ -21,7 +21,7 @@ const Navbar = () => {
             <header className={styles.navbar}>
                 <div className={styles.leftSection}>
                     <Link to="/" className={styles.logo}>
-                        <img src="/valorar-logo.png" alt="ValorAr" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+                        <img src={`${import.meta.env.BASE_URL}valorar-logo.png`} alt="ValorAr" style={{ width: 32, height: 32, objectFit: 'contain' }} />
                         <h1>ValorAr</h1>
                     </Link>
                 </div>

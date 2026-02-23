@@ -27,7 +27,7 @@ const Login = () => {
             <div className={styles.card}>
                 <div className={styles.header}>
                     <div className={styles.logoContainer}>
-                        <img src="/valorar-logo.png" alt="ValorAr Logo" className={styles.logo} />
+                        <img src={`${import.meta.env.BASE_URL}valorar-logo.png`} alt="ValorAr Logo" className={styles.logo} />
                     </div>
                     <h1>Bienvenido a ValorAr</h1>
                     <p>Tu control de inversiones a un clic de distancia</p>
