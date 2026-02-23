@@ -352,14 +352,26 @@ const AssistantView = () => {
 
                 <div className={styles.calcBody}>
                     <div className={styles.calcForm}>
-                        <div className={styles.formGroup}>
-                            <label>Capital Inicial ($)</label>
-                            <input
-                                type="number"
-                                className={styles.calcInput}
-                                value={calcAmount}
-                                onChange={(e) => setCalcAmount(e.target.value)}
-                            />
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>Capital Inicial ($)</label>
+                                <input
+                                    type="number"
+                                    className={styles.calcInput}
+                                    value={calcAmount}
+                                    onChange={(e) => setCalcAmount(e.target.value)}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Aporte Mensual ($)</label>
+                                <input
+                                    type="number"
+                                    className={styles.calcInput}
+                                    value={calcMonthlyContribution}
+                                    onChange={(e) => setCalcMonthlyContribution(e.target.value)}
+                                    placeholder="0"
+                                />
+                            </div>
                         </div>
 
                         <div className={styles.formRow}>
@@ -387,7 +399,7 @@ const AssistantView = () => {
                         </div>
 
                         <div className={styles.formRow}>
-                            <div className={styles.formGroup} style={{ flex: 2 }}>
+                            <div className={styles.formGroup} style={{ flex: 1 }}>
                                 <label>Plazo total ({calcPeriodUnit})</label>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <input
@@ -408,16 +420,6 @@ const AssistantView = () => {
                                         <option value="años">Años</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Aporte Mensual ($)</label>
-                                <input
-                                    type="number"
-                                    className={styles.calcInput}
-                                    value={calcMonthlyContribution}
-                                    onChange={(e) => setCalcMonthlyContribution(e.target.value)}
-                                    placeholder="0"
-                                />
                             </div>
                         </div>
                     </div>
