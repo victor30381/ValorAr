@@ -55,11 +55,15 @@ const fetchRealMarketDataFromAI = async (): Promise<Instrument[]> => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        tools: [{ googleSearch: {} } as any]
+    });
 
     const prompt = `
+USA LA HERRAMIENTA DE BÚSQUEDA (GOOGLE SEARCH) AHORA MISMO.
 Eres un experto financiero en Argentina vinculado al broker Cocos Capital. 
-Tu tarea es devolver un JSON ESTRICTO con valores REALES, FEHACIENTES, PRECISOS y ACTUALIZADOS de las cotizaciones de hoy, correspondientes a 3 categorías de inversión.
+Tu tarea es devolver un JSON ESTRICTO con valores REALES, FEHACIENTES, PRECISOS y ACTUALIZADOS de las cotizaciones de hoy (${new Date().toLocaleDateString()}), correspondientes a 3 categorías de inversión. BUSCA ESTOS PRECIOS EN INTERNET.
 
 El arreglo de JSON debe contener exactamente 17 instrumentos distribuidos así:
 

@@ -303,24 +303,28 @@ export async function getLiveMarketRates(instrumentType: string, currentOptions:
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use 1.5 flash for speed/cost
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            tools: [{ googleSearch: {} } as any]
+        }); // Use 2.5 flash for speed/cost with Google Search Grounding
 
         const prompt = `
-            Sos un experto en el mercado financiero argentino. Necesito las TASAS NOMINALES ANUALES (TNA) actuales (hoy ${new Date().toLocaleDateString()}) para el siguiente tipo de activo: "${instrumentType}".
+            USA LA HERRAMIENTA DE BÚSQUEDA (GOOGLE SEARCH) AHORA MISMO.
+            BUSCA en internet (Google) las cotizaciones en tiempo real del mercado financiero argentino (BCBA/BYMA) de los siguientes activos: "${instrumentType}".
+            Opciones: ${JSON.stringify(currentOptions.map(o => o.ticker))}
             
-            Instrumentos actuales en la base: ${JSON.stringify(currentOptions.map(o => o.label))}
+            NO inventes los precios. PRIOIRIZA BUSCAR EN COCOS CAPITAL. BUSCA el precio de cotización de HOY (${new Date().toLocaleDateString()}) en Cocos Capital para cada uno de esos Tickers (por ejemplo S30A6, AL30, etc). Si no encuentras el dato en Cocos Capital, puedes buscar en Rava Bursátil o Bonistas.com.
+            Extrae el último PRECIO VALOR (price) y la tasa TNA actual (tna) aproximada del instrumento reportado.
             
-            INSTRUCCIÓN:
-            Devolvé un JSON con el siguiente formato, actualizando los valores de TNA si es necesario basado en datos de mercado de hoy (Cocos Capital, BYMA, BCRA). 
-            Mantené los tickers originales. Si no tenés el dato exacto, ajustalo según la tendencia real de tasas en Argentina hoy.
-            
-            Formato:
+            INSTRUCCIÓN FINAL:
+            Devuelve ÚNICAMENTE un JSON puro con el siguiente formato, completando con los datos reales que encontraste en la búsqueda web:
             [
-                {"ticker": "...", "tna": 36.5}, 
+                {"ticker": "S16M6", "price": 105.20, "tna": 36.5}, 
+                {"ticker": "AL30", "price": 60520.40, "tna": 15.2},
                 ...
             ]
             
-            IMPORTANTE: Solo devolvé el JSON, nada de texto extra.
+            IMPORTANTE: Cero texto adicional. Solo el JSON. No uses markdown de json.
         `;
 
         const result = await model.generateContent(prompt);
@@ -331,7 +335,9 @@ export async function getLiveMarketRates(instrumentType: string, currentOptions:
             const updatedRates = JSON.parse(jsonMatch[0]);
             return currentOptions.map(opt => {
                 const updated = updatedRates.find((r: any) => r.ticker === opt.ticker);
-                return updated ? { ...opt, tna: updated.tna } : opt;
+                return updated
+                    ? { ...opt, tna: updated.tna ?? opt.tna, price: updated.price ?? opt.price }
+                    : opt;
             });
         }
     } catch (error) {
