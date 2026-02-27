@@ -12,7 +12,10 @@ const DashboardView = () => {
     // Calculate total estimated gain
     const totalGain = investments.reduce((sum, inv) => {
         if (inv.maturityValue) {
-            return sum + (inv.maturityValue - inv.amount);
+            const amount = Number(inv.amount) || 0;
+            const commission = Number(inv.commission) || 0;
+            const realAmount = amount - commission;
+            return sum + (inv.maturityValue - realAmount);
         }
         return sum;
     }, 0);
@@ -20,9 +23,13 @@ const DashboardView = () => {
     // Calculate weighted average TAE
     const weightedTae = investments.reduce((sum, inv) => {
         if (inv.tae && inv.amount) {
+            const amount = Number(inv.amount) || 0;
+            const commission = Number(inv.commission) || 0;
+            const realAmount = amount - commission;
+
             const taeNum = parseFloat(inv.tae.replace('%', '').replace(',', '.'));
             if (!isNaN(taeNum)) {
-                return sum + (taeNum * inv.amount);
+                return sum + (taeNum * realAmount);
             }
         }
         return sum;

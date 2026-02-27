@@ -15,12 +15,12 @@ type MovementType = '' | 'inversion' | 'retiro';
 // Instrument data from Cocos Capital (simulated live feed)
 const INSTRUMENT_OPTIONS: Record<string, { ticker: string; label: string; price?: number; tna?: number }[]> = {
     'Lecaps': [
-        { ticker: 'S16M6', label: 'S16M6 - Lecap Mar 2026', price: 105.20, tna: 44.50 },
-        { ticker: 'S30A6', label: 'S30A6 - Lecap Abr 2026', price: 108.10, tna: 43.80 },
-        { ticker: 'S29Y6', label: 'S29Y6 - Lecap May 2026', price: 110.50, tna: 43.20 },
-        { ticker: 'S31G6', label: 'S31G6 - Lecap Ago 2026', price: 118.00, tna: 42.50 },
-        { ticker: 'S30O6', label: 'S30O6 - Lecap Oct 2026', price: 124.50, tna: 41.80 },
-        { ticker: 'S30N6', label: 'S30N6 - Lecap Nov 2026', price: 127.80, tna: 41.50 },
+        { ticker: 'S16M6', label: 'S16M6 - Lecap Mar 2026' },
+        { ticker: 'S30A6', label: 'S30A6 - Lecap Abr 2026' },
+        { ticker: 'S29Y6', label: 'S29Y6 - Lecap May 2026' },
+        { ticker: 'S31G6', label: 'S31G6 - Lecap Ago 2026' },
+        { ticker: 'S30O6', label: 'S30O6 - Lecap Oct 2026' },
+        { ticker: 'S30N6', label: 'S30N6 - Lecap Nov 2026' },
     ],
     'Bonos': [
         { ticker: 'AL30', label: 'AL30 - Bonar 2030' },
@@ -75,6 +75,7 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [currentCommission, setCurrentCommission] = useState<number>(0);
 
     // Fetch instruments when type changes
     useEffect(() => {
@@ -98,9 +99,9 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
         }
     }, [formData.type]);
 
-    // Auto-fill price when selecting a Lecap, Caución or Plazo Fijo ticker
+    // Auto-fill price when selectin a ticker if a price comes from the AI
     useEffect(() => {
-        if (['Lecaps', 'Cauciones Bursátiles', 'Plazo Fijo'].includes(formData.type) && formData.ticker) {
+        if (formData.ticker && formData.type) {
             const selected = availableOptions.find(o => o.ticker === formData.ticker);
             if (selected?.price) {
                 setFormData(prev => ({ ...prev, price: selected.price!.toString() }));
@@ -114,14 +115,17 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         // Reset AI results when changing key fields
-        if (['type', 'ticker', 'price', 'amount'].includes(name)) {
+        if (['type', 'ticker', 'price', 'amount', 'broker'].includes(name)) {
             setAiResult(null);
             setAiError(null);
             setSaved(false);
+            setCurrentCommission(0);
         }
     };
 
-    const canCalculate = formData.date && formData.type && formData.ticker && formData.price && formData.amount && formData.broker;
+    const isPriceOptional = ['Cauciones Bursátiles', 'Plazo Fijo'].includes(formData.type);
+    const hasValidPrice = isPriceOptional ? true : Boolean(formData.price);
+    const canCalculate = Boolean(formData.date && formData.type && formData.ticker && formData.amount && formData.broker && hasValidPrice);
 
     const handleAiCalculation = async () => {
         if (!canCalculate) return;
@@ -134,12 +138,27 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
         const selectedOption = availableOptions.find(o => o.ticker === formData.ticker);
         const marketTna = selectedOption?.tna;
 
+        const totalAmount = Number(formData.amount);
+        let calculatedCommission = 0;
+
+        if (formData.type === 'Lecaps') {
+            const lowerBroker = formData.broker.toLowerCase();
+            if (lowerBroker.includes('bull market')) {
+                calculatedCommission = totalAmount * 0.0025; // 0.25%
+            } else if (lowerBroker.includes('cocos capital')) {
+                calculatedCommission = totalAmount * 0.0045; // 0.45%
+            }
+        }
+
+        setCurrentCommission(calculatedCommission);
+        const netAmount = totalAmount - calculatedCommission;
+
         try {
             const result = await calculateInvestmentMetrics(
                 formData.type,
                 formData.ticker,
                 Number(formData.price),
-                Number(formData.amount),
+                netAmount,
                 formData.date,
                 marketTna
             );
@@ -157,6 +176,7 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
         addInvestment({
             date: formData.date,
             amount: Number(formData.amount),
+            commission: currentCommission,
             ticker: formData.ticker,
             broker: formData.broker,
             type: formData.type,
@@ -208,6 +228,7 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
         setAiError(null);
         setAiLoading(false);
         setSaved(false);
+        setCurrentCommission(0);
         onClose();
     };
 
@@ -389,39 +410,58 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
                             {formData.amount && (
                                 <div className={styles.formGroup}>
                                     <label className={styles.label} htmlFor="broker">🏛️ Broker o Banco</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         id="broker"
                                         name="broker"
-                                        placeholder="Ej: Cocos Capital, Balanz, IOL"
                                         value={formData.broker}
                                         onChange={handleInputChange}
                                         className={styles.input}
                                         required
-                                    />
+                                    >
+                                        <option value="">-- Seleccione un Broker / Banco --</option>
+                                        <option value="Cocos Capital">Cocos Capital</option>
+                                        <option value="Bull Market Brokers">Bull Market Brokers</option>
+                                        <option value="InvertirOnline (IOL)">InvertirOnline (IOL)</option>
+                                        <option value="Balanz">Balanz</option>
+                                        <option value="Personal Pay">Personal Pay</option>
+                                        <option value="Mercado Pago">Mercado Pago</option>
+                                        <option value="Ualá">Ualá</option>
+                                        <option value="Naranja X">Naranja X</option>
+                                        <option value="Banco Santander">Banco Santander</option>
+                                        <option value="Banco Galicia">Banco Galicia</option>
+                                        <option value="BBVA">BBVA</option>
+                                        <option value="Banco de la Nación Argentina">Banco de la Nación Argentina</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
                                 </div>
                             )}
 
                             {/* AI CALCULATION BUTTON */}
-                            {canCalculate && !aiResult && (
-                                <button
-                                    type="button"
-                                    className={styles.btnAiCalculate}
-                                    onClick={handleAiCalculation}
-                                    disabled={aiLoading}
-                                >
-                                    {aiLoading ? (
-                                        <>
-                                            <SpinnerGap size={20} className={styles.spinner} />
-                                            Analizando con Gemini AI...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Robot size={20} weight="duotone" />
-                                            Calcular Rendimiento con IA
-                                        </>
-                                    )}
-                                </button>
+                            {!aiResult && (
+                                <div className={styles.actions} style={{ marginTop: '0.5rem' }}>
+                                    <button type="button" className={styles.btnCancel} onClick={resetAndClose}>
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={styles.btnAiCalculate}
+                                        onClick={handleAiCalculation}
+                                        disabled={aiLoading || !canCalculate}
+                                        style={{ flex: 1.5, margin: 0, opacity: canCalculate ? 1 : 0.5 }}
+                                    >
+                                        {aiLoading ? (
+                                            <>
+                                                <SpinnerGap size={20} className={styles.spinner} />
+                                                Calculando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Robot size={20} weight="duotone" />
+                                                Calcular Inversión
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             )}
 
                             {/* AI ERROR */}
@@ -447,6 +487,16 @@ const NewInvestmentModal: React.FC<NewInvestmentModalProps> = ({ isOpen, onClose
                                             {aiResult.source === 'gemini' ? '🤖 Gemini' : '📐 Motor Local'}
                                         </span>
                                     </div>
+
+                                    {currentCommission > 0 && (
+                                        <div className={styles.withdrawalSummary} style={{ margin: '1rem 0', padding: '0.8rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                            <WarningCircle size={20} weight="bold" color="#ef4444" />
+                                            <span style={{ fontSize: '0.85rem' }}>
+                                                Comisión <strong>{formData.broker}</strong> ({((currentCommission / Number(formData.amount)) * 100).toFixed(2)}%):
+                                                <strong style={{ marginLeft: '4px', color: '#ef4444' }}>-$ {currentCommission.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong>
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className={styles.metricsGrid}>
                                         <div className={styles.metricItem}>

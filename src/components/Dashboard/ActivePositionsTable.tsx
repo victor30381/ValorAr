@@ -42,8 +42,12 @@ const ActivePositionsTable = () => {
             {/* Mobile Card View */}
             <div className={styles.positionsList}>
                 {investments.map((inv) => {
+                    const amount = Number(inv.amount) || 0;
+                    const commission = Number(inv.commission) || 0;
+                    const realAmount = amount - commission;
+
                     const ganancia = inv.maturityValue
-                        ? inv.maturityValue - inv.amount
+                        ? inv.maturityValue - realAmount
                         : 0;
 
                     return (
@@ -82,7 +86,7 @@ const ActivePositionsTable = () => {
                             <div className={styles.mobileCardRow}>
                                 <span className={styles.mobileCardLabel}>Invertido</span>
                                 <span className={styles.mobileCardValue}>
-                                    $ {Number(inv.amount).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                    $ {realAmount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                                 </span>
                             </div>
 

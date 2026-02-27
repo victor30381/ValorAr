@@ -34,16 +34,28 @@ const MovementsView = () => {
 
     // Combine investments and withdrawals into a unified list
     const allMovements: MovementItem[] = [
-        ...investments.map((inv) => ({
-            id: inv.id,
-            date: inv.date,
-            type: 'inversion' as const,
-            amount: inv.amount,
-            title: inv.ticker ? `${inv.type} — ${inv.ticker}` : inv.type,
-            subtitle: inv.broker
+        ...investments.map((inv) => {
+            const amount = Number(inv.amount) || 0;
+            const commission = Number(inv.commission) || 0;
+            const realAmount = amount - commission;
+
+            let subtitle = inv.broker
                 ? `${inv.broker}${inv.tae ? ` • TAE: ${inv.tae}` : ''}`
-                : (inv.tae ? `TAE: ${inv.tae}` : 'Inversión registrada'),
-        })),
+                : (inv.tae ? `TAE: ${inv.tae}` : 'Inversión registrada');
+
+            if (commission > 0) {
+                subtitle += ` (Comisión: $${commission.toLocaleString('es-AR')})`;
+            }
+
+            return {
+                id: inv.id,
+                date: inv.date,
+                type: 'inversion' as const,
+                amount: realAmount,
+                title: inv.ticker ? `${inv.type} — ${inv.ticker}` : inv.type,
+                subtitle,
+            };
+        }),
         ...withdrawals.map((w) => ({
             id: w.id,
             date: w.date,

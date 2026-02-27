@@ -70,7 +70,7 @@ const MaturityList = () => {
                                     {item.maturityDate}
                                 </span>
                                 <span className={styles.maturityAmount}>
-                                    $ {Number(item.amount).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    $ {(Number(item.amount) - (Number(item.commission) || 0)).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
                             <span className={styles.maturityDesc}>{item.ticker || item.type} • {item.broker}</span>

@@ -9,11 +9,15 @@ const AssetDistributionChart = () => {
 
     // Group by type
     const data = investments.reduce((acc: any[], curr) => {
+        const amount = Number(curr.amount) || 0;
+        const commission = Number(curr.commission) || 0;
+        const realAmount = amount - commission;
+
         const found = acc.find(item => item.name === curr.type);
         if (found) {
-            found.value += Number(curr.amount);
+            found.value += realAmount;
         } else {
-            acc.push({ name: curr.type, value: Number(curr.amount) });
+            acc.push({ name: curr.type, value: realAmount });
         }
         return acc;
     }, []);

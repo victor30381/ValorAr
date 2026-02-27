@@ -31,6 +31,7 @@ export interface Investment {
     maturityValue?: number;  // Estimated value at maturity
     currentValue?: number;
     aiExplanation?: string;  // AI reasoning
+    commission?: number;     // Broker commission
 }
 
 export interface Withdrawal {
@@ -150,7 +151,11 @@ export const InvestmentProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const totalCapital = investments.reduce((sum, inv) => sum + Number(inv.amount), 0);
+    const totalCapital = investments.reduce((sum, inv) => {
+        const amount = Number(inv.amount) || 0;
+        const commission = Number(inv.commission) || 0;
+        return sum + (amount - commission);
+    }, 0);
     const totalWithdrawals = withdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
     const netCapital = totalCapital - totalWithdrawals;
 

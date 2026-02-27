@@ -65,16 +65,35 @@ export async function generatePortfolioPDF(
     let y = 0;
 
     // ── METRICS ────────────────────────────────────────────────────────────
-    const totalCapital = investments.reduce((s, i) => s + Number(i.amount), 0);
+    const totalCapital = investments.reduce((s, i) => {
+        const amount = Number(i.amount) || 0;
+        const commission = Number(i.commission) || 0;
+        const realAmount = amount - commission;
+        return s + realAmount;
+    }, 0);
     const totalWithdrawals = withdrawals.reduce((s, w) => s + Number(w.amount), 0);
     const netCapital = totalCapital - totalWithdrawals;
-    const totalGain = investments.reduce((s, i) => i.maturityValue ? s + (i.maturityValue - i.amount) : s, 0);
+
+    const totalGain = investments.reduce((s, i) => {
+        if (i.maturityValue) {
+            const amount = Number(i.amount) || 0;
+            const commission = Number(i.commission) || 0;
+            const realAmount = amount - commission;
+            return s + (i.maturityValue - realAmount);
+        }
+        return s;
+    }, 0);
+
     const maturityTotal = netCapital + totalGain;
 
     const weightedTae = investments.reduce((s, i) => {
         if (i.tae && i.amount) {
+            const amount = Number(i.amount) || 0;
+            const commission = Number(i.commission) || 0;
+            const realAmount = amount - commission;
+
             const n = parseFloat(i.tae.replace('%', '').replace(',', '.'));
-            return isNaN(n) ? s : s + n * i.amount;
+            return isNaN(n) ? s : s + n * realAmount;
         }
         return s;
     }, 0);
@@ -177,15 +196,19 @@ export async function generatePortfolioPDF(
         doc.line(margin, y + 1.5, margin + 40, y + 1.5);
         y += 5;
 
-        const posHeaders = [['Fecha', 'Instrumento', 'Ticker', 'Broker', 'Invertido', 'Nominales', 'Vto.', 'Val.Vto.', 'Ganancia', 'TAE']];
+        const posHeaders = [['Fecha', 'Instrumento', 'Ticker', 'Broker', 'Invertido', 'Comisión', 'Nominales', 'Vto.', 'Val.Vto.', 'Ganancia', 'TAE']];
         const posRows = investments.map(inv => {
-            const gain = inv.maturityValue ? inv.maturityValue - inv.amount : 0;
+            const amount = Number(inv.amount) || 0;
+            const commission = Number(inv.commission) || 0;
+            const realAmount = amount - commission;
+            const gain = inv.maturityValue ? inv.maturityValue - realAmount : 0;
             return [
                 fmtDate(inv.date),
                 inv.type,
                 inv.ticker || '-',
                 inv.broker || '-',
-                fmtARS(Number(inv.amount)),
+                fmtARS(realAmount),
+                inv.commission ? `- ${fmtARS(inv.commission)}` : '-',
                 inv.nominals ? inv.nominals.toLocaleString('es-AR', { maximumFractionDigits: 2 }) : '-',
                 inv.maturityDate || '-',
                 inv.maturityValue ? fmtARS(inv.maturityValue) : '-',
@@ -217,12 +240,12 @@ export async function generatePortfolioPDF(
                 fillColor: [248, 250, 252],
             },
             columnStyles: {
-                8: { textColor: COLOR_GREEN, fontStyle: 'bold' }, // Ganancia
-                9: { textColor: COLOR_PRIMARY, fontStyle: 'bold' }, // TAE
+                9: { textColor: COLOR_GREEN, fontStyle: 'bold' }, // Ganancia
+                10: { textColor: COLOR_PRIMARY, fontStyle: 'bold' }, // TAE
             },
             didParseCell: (data) => {
                 // Highlight gain column in green
-                if (data.column.index === 8 && data.section === 'body') {
+                if (data.column.index === 9 && data.section === 'body') {
                     data.cell.styles.textColor = COLOR_GREEN;
                 }
             },
